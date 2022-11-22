@@ -1,0 +1,9 @@
+a)defi de tec
+b) criar desenho da arq
+c)atualiazr repo no git
+d) usar draw.io
+e) desenhar apis
+
+
+back: node, mongoDB
+front: html, css, jquery
