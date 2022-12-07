@@ -1,0 +1,17 @@
+version: "3.2"
+
+services:
+  acme-loans-mysql:
+    image: mysql:8.0.20
+    container_name: 'acme-loans-mysql'
+    restart: unless-stopped
+    command: --default-authentication-plugin=mysql_native_password
+    env_file: .env
+    ports:
+      - 6033:3306
+    networks:
+      - acme_loans_mysql_network
+
+networks:
+  acme_loans_mysql_network:
+    name: acme_loans_mysql_network

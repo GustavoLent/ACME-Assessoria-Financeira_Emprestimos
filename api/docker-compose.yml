@@ -1,0 +1,32 @@
+version: "3.2"
+
+services:
+  acme-loans-rabbitmq:
+    image: rabbitmq:3.8-management-alpine
+    container_name: 'acme-loans-rabbitmq'
+    restart: unless-stopped
+    ports:
+      - 5673:5672
+      - 15673:15672
+    volumes:
+      - ~/.docker-conf/rabbitmq/data/:/var/lib/rabbitmq/
+      - ~/.docker-conf/rabbitmq/log/:/var/log/rabbitmq
+    networks:
+      - acme_loans_rabbitmq_network
+
+  acme-loans-mysql:
+    image: mysql:8.0.20
+    container_name: 'acme-loans-mysql'
+    restart: unless-stopped
+    command: --default-authentication-plugin=mysql_native_password
+    env_file: .env.db
+    ports:
+      - 6033:3306
+    networks:
+      - acme_loans_mysql_network
+
+networks:
+  acme_loans_rabbitmq_network:
+    name: acme_loans_rabbitmq_network
+  acme_loans_mysql_network:
+    name: acme_loans_mysql_network
