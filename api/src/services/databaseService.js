@@ -1,22 +1,29 @@
-const mysql = require('mysql2/promise');
-const APIException = require('../models/APIException');
-const HTTPStatus = require('../models/HTTPStatus');
+const mysql = require("mysql2");
+const APIException = require("../models/APIException");
+const HTTPStatus = require("../models/HTTPStatus");
 
 module.exports = class DatabaseService {
+	constructor() {
+		this.connection = undefined;
+	}
 
-    async connect() {
-        return await mysql.createConnection({ host: 'localhost', user: 'root', database: 'loans', password: "123456", port: 6033 });
-    }
+	async connect({ host = "", user = "", database = "", password = "", port = 0 }) {
+		const pool = mysql.createPool({ host, user, database, password, port });
+		this.connection = pool.promise();
 
-    async findLoans(connection) {
-        try {
-            const result = await connection.execute('SELECT * FROM loans');
+		return Promise.resolve();
+	}
 
-            return result[0]
-        } catch (error) {
-            console.error(error)
-            throw new APIException("Error when querying the database!", HTTPStatus.INTERNAL_SERVER_ERROR)
-        }
-    }
+	async findLoans() {
+		const { connection } = this;
 
-}
+		try {
+			const result = await connection.execute("SELECT * FROM loans");
+
+			return result[0];
+		} catch (error) {
+			console.error(error);
+			throw new APIException("Error when querying the database!", HTTPStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+};

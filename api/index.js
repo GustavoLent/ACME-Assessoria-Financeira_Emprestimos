@@ -1,82 +1,33 @@
-const express = require('express')
-const DatabaseService = require('./src/services/databaseService');
-const APIException = require('./src/models/APIException');
-const HTTPResponse = require('./src/models/HTTPResponse');
-const AMQPService = require('./src/services/amqpService');
 
-const app = express()
+const LoanRouter = require("./src/httpRouters/loanRoutes");
+const AMQPService = require("./src/services/amqpService");
+const DatabaseService = require("./src/services/databaseService");
+const HTTPService = require("./src/services/httpService");
+const LoanUseCase = require("./src/useCases/loanUseCase");
 
-app.use(express.json());
+(async function main() {
+	try {
+		const amqpService = new AMQPService();
+		await amqpService.openConnection({ amqpUrl: "amqp://localhost:5673" });
+		console.info("- Connected on AMQP");
 
-const loans = []
-const amqpUrl = 'amqp://localhost:5673';
+		const databaseService = new DatabaseService();
+		await databaseService.connect({ host: "localhost", user: "root", database: "loans", password: "123456", port: 6033 });
+		console.info("- Connected on Database");
 
-app.post('/createLoan', async (req, res) => {
-  if (!req.body) {
-    res.send('Missing body')
-    return
-  }
+		const loanUseCase = new LoanUseCase(amqpService, databaseService);
+		const { createLoan, getLoans } = loanUseCase;
 
-  if (!req.body.username) {
-    res.send('Missing username')
-    return
-  }
+		const loanRouter = LoanRouter.getRouter({ createLoan, getLoans, context: loanUseCase });
 
-  if (!req.body.loanvalue) {
-    res.send('Missing loanvalue')
-    return
-  }
+		HTTPService.startServer({
+			routers: [loanRouter],
+			port: 3000,
+			onStart: () => console.log(`- HTTP listening on port ${3000}`)
+		});
 
-  const { username, loanvalue } = req.body;
-  const loan = { username, loanvalue };
+	} catch (error) {
+		console.error(`Error when initializing the API! ${error}`);
+	}
+})();
 
-  const found = loans.find(openLoan => openLoan.username === username);
-
-  if (found) {
-    res.send('User already has an open loan!')
-    return
-  }
-
-  try {
-
-    const databaseService = new DatabaseService();
-    const conn = await databaseService.connect();
-    const dbRes = await databaseService.findLoans(conn);
-
-    console.log('Publishing...');
-
-    const amqpService = new AMQPService();
-    await amqpService.connect()
-
-    const exchange = 'loans';
-    const queue = 'loanProcessing';
-    const routingKey = 'newLoan';
-
-    amqpService.channel.publish(exchange, routingKey, Buffer.from(JSON.stringify(loan)));
-    loans.push(loan);
-    console.log('Message published');
-    res.send('Message published');
-
-  } catch (e) {
-
-    if (e instanceof APIException) {
-      const status = e.statusCode ? e.statusCode : 500
-      const message = e.message ? e.message : "Fuuuuuuu"
-
-      HTTPResponse.response({ res, status, body: { message } })
-    }
-
-    console.error('Error in publishing message', e);
-  } finally {
-    console.info('Closing rabbitChannel and rabbitConnection if available');
-    console.info('Channel and rabbitConnection closed');
-  }
-})
-
-app.get('/getLoans', (req, res) => {
-  res.send(JSON.stringify(loans, null, 2))
-})
-
-app.listen(3000, () => {
-  console.log(`Example app listening on port ${3000}`)
-})

@@ -1,30 +1,40 @@
-const amqplib = require('amqplib');
+const amqplib = require("amqplib");
+const { Buffer } = require("node:buffer");
 
 module.exports = class AMQPService {
-    constructor() {
-        this.channel = undefined
-        this.connection = undefined
-    }
+	constructor() {
+		this.connection = undefined;
+	}
 
-    async connect() {
-        const amqpUrl = 'amqp://localhost:5673';
-        const connection = await amqplib.connect(amqpUrl, 'heartbeat=60');
-        const channel = await connection.createChannel();
+	async closeChannel({ channel }) {
+		return await channel.close();
+	}
 
-        const exchange = 'loans';
-        const queue = 'loanProcessing';
-        const routingKey = 'newLoan';
+	async closeConnection() {
+		return await this.connection.close();
+	}
 
-        await channel.assertExchange(exchange, 'direct', { durable: true });
-        await channel.assertQueue(queue, { durable: true });
-        await channel.bindQueue(queue, exchange, routingKey);
+	async openChannel({ exchange = "", queue = "", routingKey = "" }) {
+		const { connection } = this;
 
-        this.connection = connection
-        this.channel = channel
-    }
+		const channel = await connection.createChannel();
 
-    async close() {
-        await this.channel.close();
-        await this.connection.close();
-    }
-}
+		await channel.assertExchange(exchange, "direct", { durable: true });
+		await channel.assertQueue(queue, { durable: true });
+		await channel.bindQueue(queue, exchange, routingKey);
+
+		return channel;
+	}
+
+	async openConnection({ amqpUrl = "" }) {
+		this.connection = await amqplib.connect(amqpUrl, "heartbeat=60");
+	}
+
+	async publishMessage({ exchange = "", message = "", queue = "", routingKey = "" }) {
+		const channel = await this.openChannel({ exchange, queue, routingKey });
+
+		channel.publish(exchange, routingKey, Buffer.from(message));
+
+		await this.closeChannel({ channel });
+	}
+};

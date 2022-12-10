@@ -1,7 +1,14 @@
 {
+  "scripts": {
+    "lint": "eslint .",
+    "lint:fix": "eslint --fix --ext ."
+  },
   "dependencies": {
     "amqplib": "^0.10.3",
     "express": "^4.18.2",
     "mysql2": "^2.3.3"
+  },
+  "devDependencies": {
+    "eslint": "^8.29.0"
   }
 }
