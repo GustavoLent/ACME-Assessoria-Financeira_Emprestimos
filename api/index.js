@@ -1,6 +1,10 @@
+const path = require("path");
+
+require("dotenv").config({ path: path.resolve(__dirname, ".env") });
 
 const LoanRouter = require("./src/httpRouters/loanRoutes");
 const AMQPService = require("./src/services/amqpService");
+const AuthorizationService = require("./src/services/authorizationService");
 const DatabaseService = require("./src/services/databaseService");
 const HTTPService = require("./src/services/httpService");
 const LoanUseCase = require("./src/useCases/loanUseCase");
@@ -8,11 +12,17 @@ const LoanUseCase = require("./src/useCases/loanUseCase");
 (async function main() {
 	try {
 		const amqpService = new AMQPService();
-		await amqpService.openConnection({ amqpUrl: "amqp://localhost:5673" });
+		await amqpService.openConnection({ amqpUrl: process.env.AMQP_URL });
 		console.info("- Connected on AMQP");
 
 		const databaseService = new DatabaseService();
-		await databaseService.connect({ host: "localhost", user: "root", database: "loans", password: "123456", port: 6033 });
+		await databaseService.connect({
+			host: process.env.DATABASE_HOST,
+			user: process.env.DATABASE_USERS,
+			database: process.env.DATABASE,
+			password: process.env.DATABASE_PASSWORD,
+			port: process.env.DATABASE_PORT,
+		});
 		console.info("- Connected on Database");
 
 		const loanUseCase = new LoanUseCase(amqpService, databaseService);
@@ -21,9 +31,10 @@ const LoanUseCase = require("./src/useCases/loanUseCase");
 		const loanRouter = LoanRouter.getRouter({ createLoan, getLoans, context: loanUseCase });
 
 		HTTPService.startServer({
+			authorizationFunction: AuthorizationService.decode,
+			onStart: () => console.log(`- HTTP listening on port ${process.env.HTTP_PORT}`),
+			port: process.env.HTTP_PORT,
 			routers: [loanRouter],
-			port: 3000,
-			onStart: () => console.log(`- HTTP listening on port ${3000}`)
 		});
 
 	} catch (error) {

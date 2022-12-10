@@ -19,7 +19,7 @@ services:
     container_name: 'acme-loans-mysql'
     restart: unless-stopped
     command: --default-authentication-plugin=mysql_native_password
-    env_file: .env.db
+    env_file: .env
     ports:
       - 6033:3306
     networks:

@@ -44,9 +44,11 @@ module.exports = class LoanUseCase {
 			const dbRes = await databaseService.findLoans();
 			console.log(dbRes);
 
-			console.log("Publishing...");
-			await amqpService.publishMessage({ exchange: "loans", message: JSON.stringify(loan), queue: "loanProcessing" });
-			console.log("Message published");
+			await amqpService.publishMessage({
+				exchange: process.env.AMQP_EXCHANGE_LOANS,
+				message: JSON.stringify(loan),
+				queue: process.env.AMQP_EXCHANGE_LOAN_PROCESSING
+			});
 
 			loans.push(loan);
 
