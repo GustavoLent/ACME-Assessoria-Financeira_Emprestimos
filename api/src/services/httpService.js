@@ -17,7 +17,7 @@ module.exports = class HTTPService {
 			try {
 
 				const token = req.headers["authorization"];
-				req["User"] = authorizationFunction({ token });
+				req["user"] = authorizationFunction({ token });
 
 				return next();
 			} catch (_) { /* empty */ }

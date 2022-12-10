@@ -14,16 +14,14 @@ module.exports = class DatabaseService {
 		return Promise.resolve();
 	}
 
-	async findLoans() {
-		const { connection } = this;
-
+	async runQuery({ query = "", values = [] }) {
 		try {
-			const result = await connection.execute("SELECT * FROM loans");
+			const result = await this.connection.execute(query, values);
 
 			return result[0];
 		} catch (error) {
 			console.error(error);
-			throw new APIException({message: "Error when querying the database!", status: HTTPStatus.INTERNAL_SERVER_ERROR});
+			throw new APIException({ message: "Error when querying the database!", status: HTTPStatus.INTERNAL_SERVER_ERROR });
 		}
 	}
 };

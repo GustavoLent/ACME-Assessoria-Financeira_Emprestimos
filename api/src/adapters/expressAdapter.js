@@ -3,7 +3,7 @@ const HTTPStatus = require("../models/HTTPStatus");
 module.exports = async function expressAdapter({ callback = async () => { }, context, req, res, defaultStatus = HTTPStatus.OK, defaultData = {} }) {
 
 	try {
-		const result = await callback.bind(context)(req);
+		const result = await callback.bind(context)({ body: req.body, user: req.user });
 
 		res.status(result.status || defaultStatus).json({ ...result.data } || defaultData);
 

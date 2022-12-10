@@ -1,56 +1,64 @@
 const assert = require("assert");
 
 const AMQPService = require("../services/amqpService");
-const DatabaseService = require("../services/databaseService");
-const HTTPStatus = require("../models/HTTPStatus");
 const HTTPResponse = require("../models/HTTPResponse");
+const HTTPStatus = require("../models/HTTPStatus");
+const LoansRepository = require("../repositories/loansRepository");
+const LoanMessage = require("../models/LoanMessage");
 
-const loans = [];
+const now = () => {
+	const date = new Date();
+
+	let year = date.getFullYear();
+	let month = ("0" + (date.getMonth() + 1)).slice(-2);
+	let day = ("0" + date.getDate()).slice(-2);
+	let hour = date.getHours();
+	let minute = date.getMinutes();
+	let seconds = date.getSeconds();
+
+	return `${year}-${month}-${day} ${hour}:${minute}:${seconds}`;
+};
 
 module.exports = class LoanUseCase {
-	constructor(amqpService, databaseService) {
+	constructor(amqpService, loansRepository) {
 		assert(amqpService instanceof AMQPService);
-		assert(databaseService instanceof DatabaseService);
+		assert(loansRepository instanceof LoansRepository);
 
 		this.amqpService = amqpService;
-		this.databaseService = databaseService;
+		this.loansRepository = loansRepository;
 	}
 
-	async createLoan(req) {
-		const { databaseService, amqpService } = this;
+	async createLoan({ body, user }) {
+		const { loansRepository, amqpService } = this;
 
-		if (!req.body) {
+		if (!body) {
 			return new HTTPResponse({ status: HTTPStatus.BAD_REQUEST, data: { message: "Missing loan informations" } });
 		}
 
-		if (!req.body.username) {
-			return new HTTPResponse({ status: HTTPStatus.BAD_REQUEST, data: { message: "Missing username" } });
-		}
-
-		if (!req.body.loanvalue) {
-			return new HTTPResponse({ status: HTTPStatus.BAD_REQUEST, data: { message: "Missing loanvalue" } });
-		}
-
-		const { username, loanvalue } = req.body;
-		const loan = { username, loanvalue };
-
-		const found = loans.find(openLoan => openLoan.username === username);
-
-		if (found) {
-			return new HTTPResponse({ status: HTTPStatus.BAD_REQUEST, data: { message: "Loan already started" } });
+		if (!body.value) {
+			return new HTTPResponse({ status: HTTPStatus.BAD_REQUEST, data: { message: "Missing loan value" } });
 		}
 
 		try {
-			const dbRes = await databaseService.findLoans();
-			console.log(dbRes);
+			const { id: userID } = user;
+
+			const userOpenLoans = await loansRepository.findUserOpenLoans({ userID });
+
+			if (userOpenLoans.length > 0) {
+				return new HTTPResponse({ status: HTTPStatus.BAD_REQUEST, data: { message: "User already has open loans processing" } });
+			}
+
+			const { value } = body;
+			const date = now();
+			const loanMessage = new LoanMessage(userID, value, date);
 
 			await amqpService.publishMessage({
 				exchange: process.env.AMQP_EXCHANGE_LOANS,
-				message: JSON.stringify(loan),
+				message: JSON.stringify(loanMessage),
 				queue: process.env.AMQP_EXCHANGE_LOAN_PROCESSING
 			});
 
-			loans.push(loan);
+			await loansRepository.insertNewLoan({ userID, value, date });
 
 			return new HTTPResponse({ status: HTTPStatus.OK, data: { message: "Message published" } });
 		} catch (e) {
@@ -63,7 +71,21 @@ module.exports = class LoanUseCase {
 		}
 	}
 
-	async getLoans(req) {
-		return new HTTPResponse({ status: HTTPStatus.OK, data: { message: JSON.stringify(loans, null, 2) } });
+	async getLoans() {
+		const { loansRepository } = this;
+
+		try {
+
+			const loans = await loansRepository.findAllLoans();
+			return new HTTPResponse({ status: HTTPStatus.OK, data: { loans } });
+		} catch (e) {
+			console.error("Error in getLoans. ", e);
+
+			const status = e.statusCode ? e.statusCode : HTTPStatus.INTERNAL_SERVER_ERROR;
+			const message = e.message ? e.message : "Unexpected error when creating the loan ";
+
+			return new HTTPResponse({ status, data: { message } });
+		}
+
 	}
 };
