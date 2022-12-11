@@ -1,15 +1,30 @@
-const HTTPStatus = require("../models/HTTPStatus");
+const HTTPStatus = require("../enums/HTTPStatus");
 
-module.exports = async function expressAdapter({ callback = async () => { }, context, req, res, defaultStatus = HTTPStatus.OK, defaultData = {} }) {
+module.exports = class ExpressAdapter {
+	static async handler({ callback = async () => { }, context, req, res, defaultStatus = HTTPStatus.OK, defaultData = {} }) {
+		try {
+			const result = await Promise.resolve(callback.bind(context)({ body: req.body, user: req.user }));
 
-	try {
-		const result = await callback.bind(context)({ body: req.body, user: req.user });
+			res.status(result.status || defaultStatus).json({ ...result.data } || defaultData);
 
-		res.status(result.status || defaultStatus).json({ ...result.data } || defaultData);
+		} catch (error) {
+			console.error(`Error on ExpressAdapter "handler". ${error}`);
 
-	} catch (error) {
-		console.error(`Error on controller "createLoan". ${error}`);
+			res.status(HTTPStatus.INTERNAL_SERVER_ERROR).json({});
+		}
+	}
 
-		res.status(HTTPStatus.INTERNAL_SERVER_ERROR).json({});
+	static authorizationChecker({ req, res, next, requiredRole }) {
+		try {
+			const { role } = req.user;
+
+			if (role >= requiredRole) return next();
+
+			return res.status(HTTPStatus.FORBIDDEN).json({});
+		} catch (error) {
+			console.error(`Error on ExpressAdapter "authorizationChecker". ${error}`);
+
+			res.status(HTTPStatus.INTERNAL_SERVER_ERROR).json({});
+		}
 	}
 };

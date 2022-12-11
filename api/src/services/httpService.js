@@ -1,5 +1,5 @@
 const express = require("express");
-const HTTPStatus = require("../models/HTTPStatus");
+const HTTPStatus = require("../enums/HTTPStatus");
 
 module.exports = class HTTPService {
 

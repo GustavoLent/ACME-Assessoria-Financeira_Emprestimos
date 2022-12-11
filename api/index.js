@@ -2,7 +2,7 @@ const path = require("path");
 
 require("dotenv").config({ path: path.resolve(__dirname, ".env") });
 
-const LoanRouter = require("./src/httpRouters/loanRoutes");
+const LoanRouter = require("./src/httpRouters/loanRouter");
 const LoansRepository = require("./src/repositories/loansRepository");
 const AMQPService = require("./src/services/amqpService");
 const AuthorizationService = require("./src/services/authorizationService");

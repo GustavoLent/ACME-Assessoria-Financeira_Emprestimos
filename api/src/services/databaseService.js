@@ -1,6 +1,6 @@
 const mysql = require("mysql2");
 const APIException = require("../models/APIException");
-const HTTPStatus = require("../models/HTTPStatus");
+const HTTPStatus = require("../enums/HTTPStatus");
 
 module.exports = class DatabaseService {
 	constructor() {

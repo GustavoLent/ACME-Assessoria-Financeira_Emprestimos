@@ -2,7 +2,7 @@ const assert = require("assert");
 
 const AMQPService = require("../services/amqpService");
 const HTTPResponse = require("../models/HTTPResponse");
-const HTTPStatus = require("../models/HTTPStatus");
+const HTTPStatus = require("../enums/HTTPStatus");
 const LoansRepository = require("../repositories/loansRepository");
 const LoanMessage = require("../models/LoanMessage");
 
@@ -75,7 +75,6 @@ module.exports = class LoanUseCase {
 		const { loansRepository } = this;
 
 		try {
-
 			const loans = await loansRepository.findAllLoans();
 			return new HTTPResponse({ status: HTTPStatus.OK, data: { loans } });
 		} catch (e) {

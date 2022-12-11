@@ -8,6 +8,9 @@ module.exports = {
 	/** An authentication is needed */
 	UNAUTHORIZED: 401,
 
+	/** The user does not have authorization to access the content */
+	FORBIDDEN: 403,
+
 	/** Server unexpected error */
 	INTERNAL_SERVER_ERROR: 500,
 };
