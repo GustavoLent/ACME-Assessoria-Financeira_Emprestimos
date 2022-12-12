@@ -33,5 +33,5 @@ Este projeto tem por objetivo implementar o dom√≠nio de **gerenciamento de empr√
  
 
 ## 4. Diagramas
-Os diagramas desenvolvidos podem ser acessados em visuados em:
-[API](./diagramas)
+Os diagramas desenvolvidos podem ser acessados em visualizados em:
+[diagramas](./diagramas)
