@@ -1,5 +1,5 @@
 const assert = require("assert");
-const LoanStatus = require("../enums/LoanStatus");
+const LoanStatus = require("../enums/loanStatus");
 
 const DatabaseService = require("../services/databaseService");
 
@@ -18,7 +18,7 @@ module.exports = class LoansRepository {
 	}
 
 	async findUserOpenLoans({ userID }) {
-		const openLoanStatus = [process.env.DATABASE_STATUS_STARTED, process.env.DATABASE_STATUS_PENDING].join(",");
+		const openLoanStatus = [process.env.DATABASE_STATUS_PENDING].join(",");
 
 		return await this.databaseService.runQuery({
 			query: "select * from loans.loans where statusID in (?) and userID = ?;",
@@ -40,10 +40,10 @@ module.exports = class LoansRepository {
 		});
 	}
 
-	async updateLoanStatus({ userID, statusID }) {
+	async updateLoanStatus({ ID, statusID }) {
 		return await this.databaseService.runQuery({
 			query: "UPDATE loans.loans SET statusID=? WHERE ID=?;",
-			values: [statusID, userID]
+			values: [statusID, ID]
 		});
 	}
 };

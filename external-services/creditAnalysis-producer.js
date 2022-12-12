@@ -1,7 +1,7 @@
 const amqplib = require('amqplib');
 
 (async function main() {
-	const AMQP_URL = "amqp://localhost:5673"
+	const AMQP_URL = "amqp://localhost:5672"
 	const AMQP_EXCHANGE_LOANS = "loans"
 	const AMQP_QUEUE_LOAN_ENDED_PROCESSING = "loanEndedProcessing"
 
@@ -17,6 +17,7 @@ const amqplib = require('amqplib');
 
 		const analysisResult = { userID: 1, result: status.APPROVED };
 		const message = JSON.stringify(analysisResult)
+		console.info(`Posted ${message}`);
 
 		channel.publish(AMQP_EXCHANGE_LOANS, "", Buffer.from(message));
 

@@ -1,7 +1,7 @@
 const assert = require("assert");
 const CreditAnalysisUseCase = require("../useCases/creditAnalysisUseCase");
 const AMQPService = require("../services/amqpService");
-const LoanMessage = require("../models/LoanMessage");
+const LoanMessage = require("../models/loanMessage");
 
 module.exports = class CreditAnalysisService {
 	constructor(amqpService, creditAnalysisUseCase) {
@@ -23,7 +23,8 @@ module.exports = class CreditAnalysisService {
 						const message = JSON.parse(msg.content.toString());
 
 						const { userID, result: statusID } = message;
-						await creditAnalysisUseCase.updateLoanStatus({ userID, statusID });
+
+						await creditAnalysisUseCase.processCreditAnalysisResult({ userID, statusID });
 					} catch (error) {
 						console.error(`[CreditAnalysisService startConsumingCreditAnalysisResults] Error on consuming. ${error}`);
 					}

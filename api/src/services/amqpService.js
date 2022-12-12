@@ -54,7 +54,7 @@ module.exports = class AMQPService {
 	}
 
 	async publishMessage({ exchange = "", message = "", queue = "", routingKey = "" }) {
-		const channel = await this.openChannel({ exchange, queue, routingKey });
+		const channel = await this.openChannelToPubish({ exchange, queue, routingKey });
 
 		channel.publish(exchange, routingKey, Buffer.from(message));
 

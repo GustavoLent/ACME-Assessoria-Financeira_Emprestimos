@@ -1,7 +1,7 @@
 const amqplib = require("amqplib");
 
 const AMQP_URL = "amqp://localhost:5672"
-const AMQP_QUEUE_LOAN_START_PROCESSING = "loanStartProcessing"
+const AMQP_QUEUE_LOAN_GRANTED = "loanGranted"
 
 async function processMessage(msg) {
 	console.info(`Received: ${msg.content.toString()}`);
@@ -12,7 +12,7 @@ async function connect() {
 	const channel = await connection.createChannel();
 	channel.prefetch(10);
 
-	await channel.assertQueue(AMQP_QUEUE_LOAN_START_PROCESSING, { durable: true });
+	await channel.assertQueue(AMQP_QUEUE_LOAN_GRANTED, { durable: true });
 	return channel
 }
 
@@ -20,12 +20,12 @@ async function connect() {
 	const channel = await connect()
 
 	await channel.consume(
-		AMQP_QUEUE_LOAN_START_PROCESSING,
+		AMQP_QUEUE_LOAN_GRANTED,
 		async (msg) => {
 			await processMessage(msg);
 			channel.ack(msg);
 		}
 	);
 
-	console.info("Credit Analysis [Consumer] started listening!");
+	console.info("Financial Service [Consumer] started listening!");
 })();

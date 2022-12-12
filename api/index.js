@@ -8,6 +8,7 @@ const AMQPService = require("./src/services/amqpService");
 const AuthorizationService = require("./src/services/authorizationService");
 const CreditAnalysisService = require("./src/services/creditAnalysisService");
 const DatabaseService = require("./src/services/databaseService");
+const FinancialService = require("./src/services/financialService");
 const HTTPService = require("./src/services/httpService");
 const CreditAnalysisUseCase = require("./src/useCases/creditAnalysisUseCase");
 const LoanUseCase = require("./src/useCases/loanUseCase");
@@ -30,7 +31,9 @@ const LoanUseCase = require("./src/useCases/loanUseCase");
 
 		const loansRepository = new LoansRepository(databaseService);
 
-		const creditAnalysisUseCase = new CreditAnalysisUseCase(loansRepository);
+		const financialService = new FinancialService(amqpService);
+
+		const creditAnalysisUseCase = new CreditAnalysisUseCase(loansRepository, financialService);
 		const creditAnalysisService = new CreditAnalysisService(amqpService, creditAnalysisUseCase);
 
 		await creditAnalysisService.startConsumingCreditAnalysisResults({

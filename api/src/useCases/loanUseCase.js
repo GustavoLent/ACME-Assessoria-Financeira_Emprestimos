@@ -81,14 +81,4 @@ module.exports = class LoanUseCase {
 		}
 
 	}
-
-	async processCreditAnalysis({ userID = 0, statusID = "" }) {
-		try {
-			await this.loansRepository.updateLoanStatus({ userID, statusID });
-
-			console.info(`[LoanUseCase processCreditAnalysis] updated successfully the loan for user ${userID}`);
-		} catch (e) {
-			console.error(`[LoanUseCase processCreditAnalysis] Error on user ${userID}. ${e}`);
-		}
-	}
 };

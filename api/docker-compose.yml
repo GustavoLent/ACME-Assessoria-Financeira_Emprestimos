@@ -6,8 +6,8 @@ services:
     container_name: 'acme-loans-rabbitmq'
     restart: unless-stopped
     ports:
-      - 5673:5672
-      - 15673:15672
+      - 5672:5672
+      - 15672:15672
     volumes:
       - ~/.docker-conf/rabbitmq/data/:/var/lib/rabbitmq/
       - ~/.docker-conf/rabbitmq/log/:/var/log/rabbitmq
@@ -24,6 +24,17 @@ services:
       - 6033:3306
     networks:
       - acme_loans_mysql_network
+
+  acme-loans-api:
+    build:
+      context: .
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    networks:
+      - acme_loans_rabbitmq_network
+      - acme_loans_mysql_network
+    env_file: .env
 
 networks:
   acme_loans_rabbitmq_network:

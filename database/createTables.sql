@@ -14,13 +14,12 @@ CREATE TABLE IF NOT EXISTS `loans` (
 	`statusID` INTEGER NOT NULL,
 
     PRIMARY KEY (`ID`),
-    FOREIGN KEY (`UserID`) REFERENCES `users` (`ID`)
+    FOREIGN KEY (`statusID`) REFERENCES `status` (`ID`)
 );
-ALTER TABLE `loans` ADD CONSTRAINT idx_uniqueLoan UNIQUE (`userID`, `value`, `date`);
+ALTER TABLE `loans` ADD CONSTRAINT idx_uniqueLoan UNIQUE (`userID`, `value`, `statusID`);
 
 INSERT INTO loans.status (ID, description)
 VALUES
-    (1, 'started'),
-    (2, 'pending'),
-    (3, 'approved'),
-    (4, 'rejected');
+    (1, 'pending'),
+    (2, 'approved'),
+    (3, 'rejected');
