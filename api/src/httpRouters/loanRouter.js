@@ -1,6 +1,6 @@
 const express = require("express");
 const ExpressAdapter = require("../adapters/expressAdapter");
-const RoleLevels = require("../enums/RoleLevels");
+const RoleLevels = require("../enums/roleLevels");
 
 module.exports = class LoanRouter {
 	// eslint-disable-next-line no-unused-vars

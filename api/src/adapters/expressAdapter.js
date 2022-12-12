@@ -8,7 +8,7 @@ module.exports = class ExpressAdapter {
 			res.status(result.status || defaultStatus).json({ ...result.data } || defaultData);
 
 		} catch (error) {
-			console.error(`Error on ExpressAdapter "handler". ${error}`);
+			console.error(`[ExpressAdapter handler] Error. ${error}`);
 
 			res.status(HTTPStatus.INTERNAL_SERVER_ERROR).json({});
 		}
@@ -22,7 +22,7 @@ module.exports = class ExpressAdapter {
 
 			return res.status(HTTPStatus.FORBIDDEN).json({});
 		} catch (error) {
-			console.error(`Error on ExpressAdapter "authorizationChecker". ${error}`);
+			console.error(`[ExpressAdapter authorizationChecker] Error. ${error}`);
 
 			res.status(HTTPStatus.INTERNAL_SERVER_ERROR).json({});
 		}

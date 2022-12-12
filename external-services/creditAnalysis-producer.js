@@ -13,10 +13,12 @@ const amqplib = require('amqplib');
 		await channel.assertQueue(AMQP_QUEUE_LOAN_ENDED_PROCESSING);
 		await channel.bindQueue(AMQP_QUEUE_LOAN_ENDED_PROCESSING, AMQP_EXCHANGE_LOANS);
 
-		const analysisResult = { userID: 1, result: "APPROVED" };
+		const status = { APPROVED: 2, REJECTED: 3 }
+
+		const analysisResult = { userID: 1, result: status.APPROVED };
 		const message = JSON.stringify(analysisResult)
 
-		channel.publish(AMQP_EXCHANGE_LOANS, Buffer.from(message));
+		channel.publish(AMQP_EXCHANGE_LOANS, "", Buffer.from(message));
 
 		await channel.close();
 		await connection.close();

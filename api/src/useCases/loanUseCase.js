@@ -1,10 +1,9 @@
 const assert = require("assert");
 
-const AMQPService = require("../services/amqpService");
 const HTTPResponse = require("../models/HTTPResponse");
 const HTTPStatus = require("../enums/HTTPStatus");
 const LoansRepository = require("../repositories/loansRepository");
-const LoanMessage = require("../models/LoanMessage");
+const CreditAnalysisService = require("../services/creditAnalysisService");
 
 const now = () => {
 	const date = new Date();
@@ -20,16 +19,16 @@ const now = () => {
 };
 
 module.exports = class LoanUseCase {
-	constructor(amqpService, loansRepository) {
-		assert(amqpService instanceof AMQPService);
+	constructor(creditAnalysisService, loansRepository) {
+		assert(creditAnalysisService instanceof CreditAnalysisService);
 		assert(loansRepository instanceof LoansRepository);
 
-		this.amqpService = amqpService;
+		this.creditAnalysisService = creditAnalysisService;
 		this.loansRepository = loansRepository;
 	}
 
 	async createLoan({ body, user }) {
-		const { loansRepository, amqpService } = this;
+		const { creditAnalysisService, loansRepository } = this;
 
 		if (!body) {
 			return new HTTPResponse({ status: HTTPStatus.BAD_REQUEST, data: { message: "Missing loan informations" } });
@@ -50,19 +49,14 @@ module.exports = class LoanUseCase {
 
 			const { value } = body;
 			const date = now();
-			const loanMessage = new LoanMessage(userID, value, date);
 
-			await amqpService.publishMessage({
-				exchange: process.env.AMQP_EXCHANGE_LOANS,
-				message: JSON.stringify(loanMessage),
-				queue: process.env.AMQP_EXCHANGE_LOAN_PROCESSING
-			});
+			await creditAnalysisService.startNewCreditAnalysis({ userID, value, date });
 
 			await loansRepository.insertNewLoan({ userID, value, date });
 
 			return new HTTPResponse({ status: HTTPStatus.OK, data: { message: "Message published" } });
 		} catch (e) {
-			console.error("Error in createLoan. ", e);
+			console.error(`[LoanUseCase createLoan] Error. ${e}`);
 
 			const status = e.statusCode ? e.statusCode : HTTPStatus.INTERNAL_SERVER_ERROR;
 			const message = e.message ? e.message : "Unexpected error when creating the loan ";
@@ -78,7 +72,7 @@ module.exports = class LoanUseCase {
 			const loans = await loansRepository.findAllLoans();
 			return new HTTPResponse({ status: HTTPStatus.OK, data: { loans } });
 		} catch (e) {
-			console.error("Error in getLoans. ", e);
+			console.error(`[LoanUseCase getLoans] Error. ${e}`);
 
 			const status = e.statusCode ? e.statusCode : HTTPStatus.INTERNAL_SERVER_ERROR;
 			const message = e.message ? e.message : "Unexpected error when creating the loan ";
@@ -86,5 +80,15 @@ module.exports = class LoanUseCase {
 			return new HTTPResponse({ status, data: { message } });
 		}
 
+	}
+
+	async processCreditAnalysis({ userID = 0, statusID = "" }) {
+		try {
+			await this.loansRepository.updateLoanStatus({ userID, statusID });
+
+			console.info(`[LoanUseCase processCreditAnalysis] updated successfully the loan for user ${userID}`);
+		} catch (e) {
+			console.error(`[LoanUseCase processCreditAnalysis] Error on user ${userID}. ${e}`);
+		}
 	}
 };

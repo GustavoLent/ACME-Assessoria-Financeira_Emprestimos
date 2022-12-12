@@ -6,8 +6,10 @@ const LoanRouter = require("./src/httpRouters/loanRouter");
 const LoansRepository = require("./src/repositories/loansRepository");
 const AMQPService = require("./src/services/amqpService");
 const AuthorizationService = require("./src/services/authorizationService");
+const CreditAnalysisService = require("./src/services/creditAnalysisService");
 const DatabaseService = require("./src/services/databaseService");
 const HTTPService = require("./src/services/httpService");
+const CreditAnalysisUseCase = require("./src/useCases/creditAnalysisUseCase");
 const LoanUseCase = require("./src/useCases/loanUseCase");
 
 (async function main() {
@@ -28,7 +30,14 @@ const LoanUseCase = require("./src/useCases/loanUseCase");
 
 		const loansRepository = new LoansRepository(databaseService);
 
-		const loanUseCase = new LoanUseCase(amqpService, loansRepository);
+		const creditAnalysisUseCase = new CreditAnalysisUseCase(loansRepository);
+		const creditAnalysisService = new CreditAnalysisService(amqpService, creditAnalysisUseCase);
+
+		await creditAnalysisService.startConsumingCreditAnalysisResults({
+			onStart: () => console.info("Started consuming the Credit Analysis Results")
+		});
+
+		const loanUseCase = new LoanUseCase(creditAnalysisService, loansRepository);
 		const { createLoan, getLoans } = loanUseCase;
 
 		const loanRouter = LoanRouter.getRouter({ createLoan, getLoans, context: loanUseCase });
@@ -41,7 +50,7 @@ const LoanUseCase = require("./src/useCases/loanUseCase");
 		});
 
 	} catch (error) {
-		console.error(`Error when initializing the API! ${error}`);
+		console.error(`[main] Error when initializing the API! ${error}`);
 	}
 })();
 

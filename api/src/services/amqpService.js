@@ -14,7 +14,7 @@ module.exports = class AMQPService {
 		return await this.connection.close();
 	}
 
-	async openChannel({ exchange = "", queue = "", routingKey = "" }) {
+	async openChannelToPubish({ exchange = "", queue = "", routingKey = "" }) {
 		const { connection } = this;
 
 		const channel = await connection.createChannel();
@@ -26,8 +26,31 @@ module.exports = class AMQPService {
 		return channel;
 	}
 
+	async openChannelToConsume({ queue = "" }) {
+		const { connection } = this;
+
+		const channel = await connection.createChannel();
+		channel.prefetch(10);
+
+		await channel.assertQueue(queue, { durable: true });
+		return channel;
+	}
+
 	async openConnection({ amqpUrl = "" }) {
 		this.connection = await amqplib.connect(amqpUrl, "heartbeat=60");
+	}
+
+	// eslint-disable-next-line no-unused-vars
+	async openConsumer({ queue = "", onMessage = async (msg = "") => { } }) {
+		const channel = await this.openChannelToConsume({ queue });
+
+		await channel.consume(
+			queue,
+			async (msg) => {
+				await onMessage(msg);
+				channel.ack(msg);
+			}
+		);
 	}
 
 	async publishMessage({ exchange = "", message = "", queue = "", routingKey = "" }) {
@@ -37,4 +60,5 @@ module.exports = class AMQPService {
 
 		await this.closeChannel({ channel });
 	}
+
 };

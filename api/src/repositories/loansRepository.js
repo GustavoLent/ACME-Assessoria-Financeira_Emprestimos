@@ -1,4 +1,5 @@
 const assert = require("assert");
+const LoanStatus = require("../enums/LoanStatus");
 
 const DatabaseService = require("../services/databaseService");
 
@@ -33,11 +34,16 @@ module.exports = class LoansRepository {
 	}
 
 	async insertNewLoan({ userID, value, date }) {
-		const statusID = process.env.DATABASE_STATUS_STARTED;
-
 		return await this.databaseService.runQuery({
 			query: "INSERT INTO loans.loans (userID, value, `date`, statusID) VALUES(?, ?, ?, ?);",
-			values: [userID, value, date, statusID]
+			values: [userID, value, date, LoanStatus.PENDING]
+		});
+	}
+
+	async updateLoanStatus({ userID, statusID }) {
+		return await this.databaseService.runQuery({
+			query: "UPDATE loans.loans SET statusID=? WHERE ID=?;",
+			values: [statusID, userID]
 		});
 	}
 };

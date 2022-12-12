@@ -20,7 +20,8 @@ module.exports = class DatabaseService {
 
 			return result[0];
 		} catch (error) {
-			console.error(error);
+			console.error(`[DatabaseService runQuery] Error. ${error}`);
+
 			throw new APIException({ message: "Error when querying the database!", status: HTTPStatus.INTERNAL_SERVER_ERROR });
 		}
 	}
