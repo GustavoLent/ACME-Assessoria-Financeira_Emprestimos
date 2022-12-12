@@ -1,4 +1,7 @@
 # ACME Assessoria Financeira Empréstimos
 
-## Instruções para abrir o diagrama no [Draw.IO](https://app.diagrams.net/)
-![Instruções de uso do diagrama](./readme-images/drawio-instructions.png)
+## How to open a diagram in [Draw.IO](https://app.diagrams.net/)
+![How to open a diagram in Draw.IO](./readme-images/drawio-instructions.png)
+
+## API Visualization
+![API](./diagramas/apis.png)
