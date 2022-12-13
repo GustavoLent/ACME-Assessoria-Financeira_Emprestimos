@@ -18,7 +18,7 @@ Este projeto tem por objetivo implementar o domínio de **gerenciamento de empr�
 
 ## 3. Instruções para execução
  - Acesse a pasta raiz do projeto
- - Executar o comando ```docker-compose up``` na pasta ./api
+ - Execute o comando ```docker-compose up``` na pasta ./api
  
  ### 3.1. Para iniciar serviços externos:
  - Execute ```cd external-services/```
@@ -29,7 +29,7 @@ Este projeto tem por objetivo implementar o domínio de **gerenciamento de empr�
 
 ### 3.2. Para importar a coleção de requisições e JWT da API
   - Acesse o Insomnia > configurações > data > import data
-  - Importe o arquivo [imsomnia-request.json](./imsomnia-request.json)
+  - Importe o arquivo [imsomnia-request.json](./imsomnia-requests.json)
  
 
 ## 4. Diagramas
