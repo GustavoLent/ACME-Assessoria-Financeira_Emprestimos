@@ -29,7 +29,7 @@ Este projeto tem por objetivo implementar o domínio de **gerenciamento de empr�
 
 ### 3.2. Para importar a coleção de requisições e JWT da API
   - Acesse o Insomnia > configurações > data > import data
-  - Importe o arquivo [imsomnia-request.json](./imsomnia-requests.json)
+  - Importe o arquivo [insomnia-requests.json](./insomnia-requests.json)
  
 
 ## 4. Diagramas
